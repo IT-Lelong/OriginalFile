@@ -215,7 +215,7 @@ public class MainActivity extends AppCompatActivity {
                     BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"));
                     String result = reader.readLine();
                     reader.close();
-                    if (result.equals("PASS")) {
+                    if (result.contains("PASS")) {
                         if (SaveCheck.isChecked()) {
                             db.execSQL("DELETE FROM " + TABLE_NAME + "");
                             ContentValues args = new ContentValues();
@@ -244,7 +244,7 @@ public class MainActivity extends AppCompatActivity {
                         bundle.putString("ID", editID.getText().toString());
                         login.putExtras(bundle);
                         startActivity(login);
-                    } else if (result.equals("error")) {
+                    } else if (result.contains("FALSE")) {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
