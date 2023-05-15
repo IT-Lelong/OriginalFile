@@ -45,7 +45,6 @@ import java.util.concurrent.ExecutionException;
 public class Menu extends AppCompatActivity {
 
     //private Create_Table Cre_db = null;
-    String g_server = "";
     Button btn_KT01, btn_KT02, btn_KT03, btn_KT04;
     TextView menuID;
     String ID;
@@ -58,14 +57,13 @@ public class Menu extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_menu);
 
-        Bundle getbundle = getIntent().getExtras();
         //actionBar = getSupportActionBar();
         //actionBar.hide();
 
+        Bundle getbundle = getIntent().getExtras();
         ID = getbundle.getString("ID");
-        g_server = getbundle.getString("SERVER");
         menuID = (TextView) findViewById(R.id.menuID);
-        new IDname().execute("http://172.16.40.20/" + g_server + "/getid.php?ID=" + ID);
+        new IDname().execute("http://172.16.40.20/" + Constant_Class.server + "/getidJson.php?ID=" + ID);
 
         //Cre_db = new Create_Table(this);
         //Cre_db.open();
@@ -85,7 +83,7 @@ public class Menu extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        checkAppUpdate = new CheckAppUpdate(this, g_server);
+        checkAppUpdate = new CheckAppUpdate(this);
         checkAppUpdate.checkVersion();
     }
 
@@ -120,7 +118,30 @@ public class Menu extends AppCompatActivity {
         }
 
         protected void onPostExecute(String result) {
-            menuID.setText(result);
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    if(!result.equals("FALSE")){
+                        try{
+                            JSONArray jsonarray = new JSONArray(result);
+                            for (int i = 0; i < jsonarray.length(); i++) {
+                                JSONObject jsonObject = jsonarray.getJSONObject(i);
+                                menuID.setText(ID + " " + jsonObject.getString("TA_CPF001") + "\n" + jsonObject.getString("GEM02") );
+                                Constant_Class.UserID = ID;
+                                Constant_Class.UserName_zh = jsonObject.getString("CPF02");
+                                Constant_Class.UserName_vn = jsonObject.getString("TA_CPF001");
+                                Constant_Class.UserDepID = jsonObject.getString("CPF29");
+                                Constant_Class.UserDepName = jsonObject.getString("GEM02");
+                                Constant_Class.UserFactory = jsonObject.getString("CPF281");
+                            }
+                        } catch (JSONException e) {
+                            Toast alert = Toast.makeText(Menu.this, e.toString(), Toast.LENGTH_LONG);
+                            alert.show();
+                        }
+                    }
+
+                }
+            });
         }
     }
 

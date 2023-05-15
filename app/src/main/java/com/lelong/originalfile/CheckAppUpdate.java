@@ -33,7 +33,7 @@ import java.net.URL;
 import java.net.URLConnection;
 
 public class CheckAppUpdate {
-    String g_server = "";
+    String g_package = "";
     private Context mCtxAPI = null;
 
     /**
@@ -42,19 +42,14 @@ public class CheckAppUpdate {
     String newVerName = "";//新版本名稱
     int newVerCode = -1;//新版本號
     ProgressDialog pd = null;
-    String g_name = "TECH_APP";
-    String UPDATE_SERVERAPK =  g_name + ".apk";
-    String g_package = "";
 
-
-    public CheckAppUpdate(Context ctx, String g_server) {
-        this.g_server = g_server;
+    public CheckAppUpdate(Context ctx) {
         this.mCtxAPI = ctx;
         g_package = mCtxAPI.getPackageName().toString();
     }
 
     public void checkVersion() {
-        new Asyn_getServerVer().execute("http://172.16.40.20/" + g_server + "/check_ver.php?app=" + g_name);
+        new Asyn_getServerVer().execute("http://172.16.40.20/" + Constant_Class.server + "/check_ver.php?app=" + Constant_Class.UpdateName);
     }
 
     private String docNoiDung_Tu_URL(String theUrl) {
@@ -197,7 +192,7 @@ public class CheckAppUpdate {
                         pd.setTitle(mCtxAPI.getString(R.string.ver_downloading));
                         pd.setMessage(mCtxAPI.getString(R.string.ver_please_wait));
                         pd.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-                        downFile("http://172.16.40.20/" + g_server + "/AndroidUpdateService/" + g_name +".apk");
+                        downFile("http://172.16.40.20/" + Constant_Class.server  + "/AndroidUpdateService/" + Constant_Class.UpdateName +".apk");
                     }
                 }).create();
                 /*.setNegativeButton("暫不更新", new DialogInterface.OnClickListener() {
@@ -230,7 +225,7 @@ public class CheckAppUpdate {
                     InputStream is = entity.getContent();
                     FileOutputStream fileOutputStream = null;
                     if (is != null) {
-                        File file = new File(Environment.getExternalStorageDirectory() + "/Download", UPDATE_SERVERAPK);
+                        File file = new File(Environment.getExternalStorageDirectory() + "/Download",  Constant_Class.Update_serverAPK);
                         fileOutputStream = new FileOutputStream(file);
                         byte[] b = new byte[1024];
                         int charb = -1;
@@ -282,7 +277,7 @@ public class CheckAppUpdate {
         Intent intent = new Intent(Intent.ACTION_VIEW);
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        File apkFile = new File(Environment.getExternalStorageDirectory() + "/Download/" + UPDATE_SERVERAPK);
+        File apkFile = new File(Environment.getExternalStorageDirectory() + "/Download/" +  Constant_Class.Update_serverAPK);
         /*if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             Uri contentUri = FileProvider.getUriForFile(this, BuildConfig.APPLICATION_ID + ".provider", apkFile);

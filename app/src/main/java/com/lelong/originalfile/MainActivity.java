@@ -28,6 +28,10 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -39,7 +43,6 @@ public class MainActivity extends AppCompatActivity {
     EditText editID, editPassword;
     CheckBox onlinecheck, SaveCheck;
     TextView tv_ver;
-    String g_server = "PHPtest";
     String g_package = "";
     Locale locale;
     String ID, PASSWORD;
@@ -48,6 +51,16 @@ public class MainActivity extends AppCompatActivity {
     String pass = "pass";
     private SQLiteDatabase db = null;
     private CheckAppUpdate checkAppUpdate = null;
+
+    private static final int REQUEST_EXTERNAL_STORAGE = 1;
+    private static final int REQUEST_CAMERA_PERMISSION = 2;
+
+    private static String[] PERMISSIONS_STORAGE = {
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE};
+    private static String[] PERMISSIONS_CAMERA = {
+            Manifest.permission.CAMERA
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,9 +72,7 @@ public class MainActivity extends AppCompatActivity {
         actionBar.hide();
 
         g_package = this.getPackageName().toString();
-        verifyStoragePermissions(MainActivity.this);
-
-        checkAppUpdate = new CheckAppUpdate(this, g_server);
+        checkAppUpdate = new CheckAppUpdate(this);
         checkAppUpdate.checkVersion();
 
         String CREATE_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (" + accID + " TEXT," + pass + " TEXT)";
@@ -99,7 +110,7 @@ public class MainActivity extends AppCompatActivity {
         try {
             String verCode = String.valueOf(this.getPackageManager().getPackageInfo(g_package, 0).versionCode);
             String verName = this.getPackageManager().getPackageInfo(g_package, 0).versionName;
-            tv_ver.setText("SV: "+ g_server +" VerCode: " + verCode + " VerName: " + verName);
+            tv_ver.setText("SV: "+ Constant_Class.server +" VerCode: " + verCode + " VerName: " + verName);
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
         }
@@ -108,44 +119,43 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // Storage Permissions (S)
-    private static final int REQUEST_EXTERNAL_STORAGE = 1;
-    private static String[] PERMISSIONS_STORAGE = {
-            android.Manifest.permission.READ_EXTERNAL_STORAGE,
-            android.Manifest.permission.WRITE_EXTERNAL_STORAGE};
-
-    public static void verifyStoragePermissions(Activity activity) {
-        // Check if we have write permission
-        int permission = ActivityCompat.checkSelfPermission(activity, android.Manifest.permission.WRITE_EXTERNAL_STORAGE);
-
-        if (permission != PackageManager.PERMISSION_GRANTED) {
-            // We don't have permission so prompt the user
-            ActivityCompat.requestPermissions(
-                    activity,
-                    PERMISSIONS_STORAGE,
-                    REQUEST_EXTERNAL_STORAGE
-            );
-        }
+    @Override
+    protected void onStart() {
+        super.onStart();
+        checkPermissions();
     }
 
-    private static final int REQUEST_WRITE_PERMISSION = 786;
+    public void checkPermissions() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) !=
+                    PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(PERMISSIONS_STORAGE, REQUEST_EXTERNAL_STORAGE);
+            }
+            if (checkSelfPermission(Manifest.permission.CAMERA) !=
+                    PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(PERMISSIONS_CAMERA, REQUEST_CAMERA_PERMISSION);
+            }
+        }
+    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == REQUEST_WRITE_PERMISSION && grantResults[0] == PackageManager.PERMISSION_GRANTED)
-            Toast.makeText(this, "Permission granted", Toast.LENGTH_LONG).show();
-    }
 
-    private void requestPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
-            requestPermissions(new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_WRITE_PERMISSION);
+        if (requestCode == REQUEST_EXTERNAL_STORAGE) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(this, "External storage permission granted", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "External storage permission denied", Toast.LENGTH_SHORT).show();
+            }
+        } else if (requestCode == REQUEST_CAMERA_PERMISSION) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(this, "Camera permission granted", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "Camera permission denied", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
-
-    private boolean canReadWriteExternal() {
-        return Build.VERSION.SDK_INT < Build.VERSION_CODES.M ||
-                ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED;
-    }
-
     // Storage Permissions (E)
 
     @Override
@@ -169,7 +179,6 @@ public class MainActivity extends AppCompatActivity {
                     login.setClass(MainActivity.this, Menu.class);
                     Bundle bundle = new Bundle();
                     bundle.putString("ID", editID.getText().toString());
-                    bundle.putString("SERVER", g_server);
                     login.putExtras(bundle);
                     startActivity(login);
                 } else {
@@ -177,7 +186,7 @@ public class MainActivity extends AppCompatActivity {
                     alert.show();
                 }
             } else {
-                login("http://172.16.40.20/" + g_server + "/login.php?ID=" + ID + "&PASSWORD=" + PASSWORD);
+                login("http://172.16.40.20/" + Constant_Class.server + "/loginJson.php?ID=" + ID + "&PASSWORD=" + PASSWORD);
             }
         }
     };
@@ -206,7 +215,7 @@ public class MainActivity extends AppCompatActivity {
                     BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"));
                     String result = reader.readLine();
                     reader.close();
-                    if (result.equals("pass")) {
+                    if (result.equals("PASS")) {
                         if (SaveCheck.isChecked()) {
                             db.execSQL("DELETE FROM " + TABLE_NAME + "");
                             ContentValues args = new ContentValues();
@@ -217,11 +226,22 @@ public class MainActivity extends AppCompatActivity {
                             db.execSQL("DELETE FROM " + TABLE_NAME + "");
                         }
 
+                        try{
+                            JSONArray jsonarray = new JSONArray(result);
+                            for (int i = 0; i < jsonarray.length(); i++) {
+                                JSONObject jsonObject = jsonarray.getJSONObject(i);
+                                Constant_Class.UserXuong = jsonObject.getString("TC_QRH003");
+                                Constant_Class.UserKhau= jsonObject.getString("TC_QRH005");
+                                Constant_Class.UserTramQR = jsonObject.getString("TC_QRH006");
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+
                         Intent login = new Intent();
                         login.setClass(MainActivity.this, Menu.class);
                         Bundle bundle = new Bundle();
                         bundle.putString("ID", editID.getText().toString());
-                        bundle.putString("SERVER", g_server);
                         login.putExtras(bundle);
                         startActivity(login);
                     } else if (result.equals("error")) {
