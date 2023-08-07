@@ -14,7 +14,7 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" /> <!--cài đặt ứng dụng không xác định-->
     <uses-permission android:name="com.symbol.emdk.permission.EMDK" />
 
     <application
@@ -55,8 +55,6 @@
             android:name=".Menu"
             android:exported="false"
             android:screenOrientation="fullSensor"/>
-
-
     </application>
 
 </manifest>
