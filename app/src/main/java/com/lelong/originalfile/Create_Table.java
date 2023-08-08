@@ -46,11 +46,13 @@ public class Create_Table {
 
     public void open() throws SQLException {
         db = mCtx.openOrCreateDatabase(DATABASE_NAME, 0, null);
+    }
+
+    public void openTable() {
         try {
             db.execSQL(CREATE_TABLE_FAB);
             db.execSQL(CREATE_TABLE_FAC);
         } catch (Exception e) {
-
         }
     }
 

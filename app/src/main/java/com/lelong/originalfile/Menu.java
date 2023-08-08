@@ -39,6 +39,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -50,13 +51,13 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class Menu extends AppCompatActivity {
-
+    private CheckAppUpdate checkAppUpdate = null;
     //private Create_Table Cre_db = null;
     Button btn_KT01, btn_KT02, btn_KT03, btn_KT04;
     TextView menuID;
     String ID;
     Locale locale;
-    private CheckAppUpdate checkAppUpdate = null;
+    SimpleDateFormat dateFormat;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,6 +72,7 @@ public class Menu extends AppCompatActivity {
         ID = getbundle.getString("ID");
         menuID = (TextView) findViewById(R.id.menuID);
         new IDname().execute("http://172.16.40.20/" + Constant_Class.server + "/");
+        dateFormat = new SimpleDateFormat("yyyy/MM/dd");
 
         //Cre_db = new Create_Table(this);
         //Cre_db.open();
