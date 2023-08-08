@@ -124,7 +124,7 @@ public class MainActivity extends AppCompatActivity {
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
         }
-        
+
     }
 
     // Storage Permissions (S)

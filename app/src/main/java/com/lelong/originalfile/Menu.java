@@ -29,6 +29,8 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.gson.JsonObject;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -41,6 +43,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ExecutionException;
+
+import retrofit2.Call;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class Menu extends AppCompatActivity {
 
@@ -63,7 +70,7 @@ public class Menu extends AppCompatActivity {
         Bundle getbundle = getIntent().getExtras();
         ID = getbundle.getString("ID");
         menuID = (TextView) findViewById(R.id.menuID);
-        new IDname().execute("http://172.16.40.20/" + Constant_Class.server + "/getidJson.php?ID=" + ID);
+        new IDname().execute("http://172.16.40.20/" + Constant_Class.server + "/");
 
         //Cre_db = new Create_Table(this);
         //Cre_db.open();
@@ -94,19 +101,29 @@ public class Menu extends AppCompatActivity {
         @Override
         protected String doInBackground(String... params) {
             try {
-                URL url = new URL(params[0]);
-                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-                conn.setRequestMethod("GET");
-                conn.setConnectTimeout(10000);
-                conn.setReadTimeout(10000);
-                conn.setDoInput(true);
-                conn.setDoOutput(true);
-                conn.connect();
-                BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"));
-                result = reader.readLine();
-                reader.close();
+                String baseUrl = params[0];
+                Retrofit retrofit = new Retrofit.Builder()
+                        .baseUrl(baseUrl)
+                        .addConverterFactory(GsonConverterFactory.create())
+                        .build();
+
+                API_Interface apiInterface = retrofit.create(API_Interface.class);
+                Call<List<JsonObject>> call = apiInterface.getData(baseUrl + "getidJson.php?ID=" + ID);
+                Response<List<JsonObject>> response = call.execute();
+
+                if (response.isSuccessful()) {
+                    List<JsonObject> jsonObjects = response.body();
+                    if (jsonObjects != null && jsonObjects.size() > 0) {
+                        JsonObject jsonObject = jsonObjects.get(0);
+                        result = jsonObject.toString(); // Convert JsonObject to a string
+                    } else {
+                        result = "FALSE";
+                    }
+                } else {
+                    result = "FALSE";
+                }
             } catch (Exception e) {
-                result = "";
+                result = "FALSE";
             } finally {
                 return result;
             }
@@ -123,17 +140,14 @@ public class Menu extends AppCompatActivity {
                 public void run() {
                     if(!result.equals("FALSE")){
                         try{
-                            JSONArray jsonarray = new JSONArray(result);
-                            for (int i = 0; i < jsonarray.length(); i++) {
-                                JSONObject jsonObject = jsonarray.getJSONObject(i);
-                                menuID.setText(ID + " " + jsonObject.getString("TA_CPF001") + "\n" + jsonObject.getString("GEM02") );
-                                Constant_Class.UserID = ID;
-                                Constant_Class.UserName_zh = jsonObject.getString("CPF02");
-                                Constant_Class.UserName_vn = jsonObject.getString("TA_CPF001");
-                                Constant_Class.UserDepID = jsonObject.getString("CPF29");
-                                Constant_Class.UserDepName = jsonObject.getString("GEM02");
-                                Constant_Class.UserFactory = jsonObject.getString("CPF281");
-                            }
+                            JSONObject jsonObject = new JSONObject(result);
+                            menuID.setText(ID + " " + jsonObject.getString("TA_CPF001") + "\n" + jsonObject.getString("GEM02"));
+                            Constant_Class.UserID = ID;
+                            Constant_Class.UserName_zh = jsonObject.getString("CPF02");
+                            Constant_Class.UserName_vn = jsonObject.getString("TA_CPF001");
+                            Constant_Class.UserDepID = jsonObject.getString("CPF29");
+                            Constant_Class.UserDepName = jsonObject.getString("GEM02");
+                            Constant_Class.UserFactory = jsonObject.getString("CPF281");
                         } catch (JSONException e) {
                             Toast alert = Toast.makeText(Menu.this, e.toString(), Toast.LENGTH_LONG);
                             alert.show();
