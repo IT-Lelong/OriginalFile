@@ -12,6 +12,13 @@
     <string name="tt_kho">倉庫</string>
     <string name="tt_solo">批號</string>
     <string name="tt_soluong">數量</string>
+    <string name="tt_trangthai">狀態</string>
+    <string name="tt_tenhangmuc">項目說明</string>
+    <string name="tt_ngay">日期</string>
+    <string name="tt_thoigian">時間</string>
+    <string name="tt_bophan">部門</string>
+    <string name="tt_ghichu">備註</string>
+    <string name="tt_stt">序號</string>
 
     /*Menu Button*/
     <string name="btn_KT01">設備管理稽核評分表 </string>

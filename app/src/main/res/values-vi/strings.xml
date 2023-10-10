@@ -13,6 +13,14 @@
     <string name="tt_kho">Kho</string>
     <string name="tt_solo">Số lô</string>
     <string name="tt_soluong">Số lượng</string>
+    <string name="tt_trangthai">Trạng thái</string>
+    <string name="tt_tenhangmuc">Thuyết minh hạng mục</string>
+    <string name="tt_ngay">Ngày</string>
+    <string name="tt_thoigian">Thời gian</string>
+    <string name="tt_bophan">Bộ phận</string>
+    <string name="tt_ghichu">Ghi chú</string>
+    <string name="tt_stt">STT</string>
+
 
     /*Menu Button*/
     <string name="btn_KT01">BIỂU ĐIỂM KHẢO HẠCH QUẢN LÝ THIẾT BỊ</string>
